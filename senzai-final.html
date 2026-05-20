@@ -4571,8 +4571,7 @@ html[data-theme="light"] .split-copy h2 {
 
 /* ── Senzai Loop section ── */
 html[data-theme="light"] .stage-loop {
-  background: rgba(248, 250, 255, 0.72);
-  backdrop-filter: blur(4px);
+  background: #FFFFFF;
 }
 
 html[data-theme="light"] .loop-hero-pill {
@@ -4990,7 +4989,11 @@ html[data-theme="light"] .loop-node.lit .loop-node-label {
   color: #2563EB;
 }
 
-/* ── Govern ring — opacity handled in world overrides section below ── */
+/* ── Govern ring ── */
+html[data-theme="light"] .govern-ring {
+  filter: drop-shadow(0 0 24px rgba(37, 99, 235, 0.10));
+  opacity: 0.25;
+}
 
 /* ── Hero tags ── */
 html[data-theme="light"] .hero-tags span {
@@ -5017,18 +5020,16 @@ html[data-theme="light"] .mk-card:hover {
   box-shadow: 0 8px 32px rgba(10, 22, 40, 0.10);
 }
 
-/* ── Alternating section backgrounds — semi-transparent so orbit ring shows through ── */
+/* ── Alternating section backgrounds ── */
 html[data-theme="light"] #decide,
 html[data-theme="light"] #accelerate,
 html[data-theme="light"] #govern {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(6px);
+  background: #FFFFFF;
 }
 
 html[data-theme="light"] #design,
 html[data-theme="light"] #reuse {
-  background: rgba(247, 249, 252, 0.78);
-  backdrop-filter: blur(6px);
+  background: #F7F9FC;
 }
 
 /* ── AI energy flow spine — lighter on white bg ── */
@@ -5047,6 +5048,7 @@ html[data-theme="light"] .stage:not(.stage-hero):not(.stage-loop) {
 html[data-theme="light"] .world {
   opacity: 1;
   pointer-events: none;
+  overflow: visible; /* allow ring to render outside clipped bounds */
 }
 
 html[data-theme="light"] .world-stars {
@@ -5073,17 +5075,20 @@ html[data-theme="light"] .world-glow-c {
 }
 
 html[data-theme="light"] .govern-ring {
-  filter: drop-shadow(0 0 18px rgba(37, 99, 235, 0.18));
-  opacity: 0.75;
+  filter: drop-shadow(0 0 28px rgba(37, 99, 235, 0.28));
+  opacity: 1;
 }
 
 html[data-theme="light"] .govern-ring-svg circle,
-html[data-theme="light"] .govern-ring-svg line {
-  stroke: rgba(37, 99, 235, 0.35);
+html[data-theme="light"] .govern-ring-svg line,
+html[data-theme="light"] .govern-ring-svg path,
+html[data-theme="light"] .govern-ring-svg rect,
+html[data-theme="light"] .govern-ring-svg polyline {
+  stroke: rgba(37, 99, 235, 0.6);
 }
 
 html[data-theme="light"] .govern-ring-svg text {
-  fill: rgba(37, 99, 235, 0.55);
+  fill: rgba(37, 99, 235, 0.72);
 }
 
 html[data-theme="light"] .loop-node-dot {
@@ -6524,13 +6529,7 @@ function App() {
         worldEl.style.setProperty("--ring-rot", `${rot}deg`);
         worldEl.style.setProperty("--core-scale", String(scale * 0.85));
         worldEl.style.setProperty("--world-x", x);
-        // In light mode, let CSS control opacity; only set in dark mode
-        const isLightMode = document.documentElement.getAttribute("data-theme") === "light";
-        if (!isLightMode) {
-          worldEl.style.opacity = String(opacity);
-        } else {
-          worldEl.style.removeProperty("opacity");
-        }
+        worldEl.style.opacity = String(opacity);
         
         // Update lit node classes
         document.querySelectorAll(".loop-node").forEach((node) => {
