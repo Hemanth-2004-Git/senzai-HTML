@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>SENZAI | AI Designed for Decisions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -77,6 +77,10 @@
   --container: 1180px;
   --pad: 32px;
 
+  /* 3D world / govern ring — scaled per breakpoint below */
+  --world-ring-size: 720px;
+  --world-orbit-r: 330px;
+
   /* Synced from fixed nav height in App (fallback if JS not run) */
   --nav-scroll-offset: 80px;
 }
@@ -126,6 +130,9 @@ body::after {
 .app-container {
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 /* Global AI energy flow — pure decorative overlay; does not affect layout */
@@ -271,8 +278,8 @@ a {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 720px;
-  height: 720px;
+  width: var(--world-ring-size);
+  height: var(--world-ring-size);
   transform: translate(calc(-50% + var(--world-x, 0px)), -50%);
   transform-origin: center;
   transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
@@ -283,8 +290,8 @@ a {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 720px;
-  height: 720px;
+  width: var(--world-ring-size);
+  height: var(--world-ring-size);
   transform: translate(-50%, -50%) scale(var(--ring-scale, 1)) rotate(var(--ring-rot, 0deg));
   transform-origin: center;
   transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
@@ -319,8 +326,8 @@ a {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 720px;
-  height: 720px;
+  width: var(--world-ring-size);
+  height: var(--world-ring-size);
   transform: translate(-50%, -50%) scale(var(--ring-scale, 1));
   transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
 }
@@ -331,7 +338,7 @@ a {
   top: 50%;
   width: 0;
   height: 0;
-  transform: rotate(var(--angle)) translateY(-330px) rotate(calc(-1 * var(--angle)));
+  transform: rotate(var(--angle)) translateY(calc(-1 * var(--world-orbit-r))) rotate(calc(-1 * var(--angle)));
 }
 
 .loop-node-dot {
@@ -487,18 +494,13 @@ a {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --world-ring-size: 480px;
+    --world-orbit-r: 220px;
+  }
+
   .depth-layer {
     display: none;
-  }
-
-  .govern-ring,
-  .loop-orbit {
-    width: 480px;
-    height: 480px;
-  }
-
-  .loop-node {
-    transform: rotate(var(--angle)) translateY(-220px) rotate(calc(-1 * var(--angle)));
   }
 }
 
@@ -756,12 +758,150 @@ html[data-theme="light"] .foot-mark {
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
 }
 
+/* Mobile nav — drawer + burger (shown ≤900px via CSS) */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-burger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 1px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.nav-burger.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-burger.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-burger.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(4, 8, 18, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 200;
+  width: min(300px, 88vw);
+  height: 100%;
+  height: 100dvh;
+  padding: calc(var(--nav-scroll-offset, 64px) + 20px) 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(10, 14, 26, 0.98);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.32s;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-drawer.is-open {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.nav-drawer__link {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-family: var(--f-d);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.nav-drawer__link:hover,
+.nav-drawer__link:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #7ecde9;
+}
+
+.nav-drawer__cta {
+  margin-top: 16px;
+  text-align: center;
+  justify-content: center;
+}
+
+body.nav-open {
+  overflow: hidden;
+}
+
+html[data-theme="light"] .nav-burger {
+  border-color: #E2E8F0;
+  background: #F8FAFC;
+}
+
+html[data-theme="light"] .nav-burger span {
+  background: #334155;
+}
+
+html[data-theme="light"] .nav-backdrop {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+html[data-theme="light"] .nav-drawer {
+  background: rgba(255, 255, 255, 0.98);
+  border-left-color: #E2E8F0;
+  box-shadow: -8px 0 32px rgba(10, 22, 40, 0.12);
+}
+
+html[data-theme="light"] .nav-drawer__link {
+  color: #334155;
+}
+
+html[data-theme="light"] .nav-drawer__link:hover,
+html[data-theme="light"] .nav-drawer__link:focus-visible {
+  background: #F1F5F9;
+  color: #2563EB;
+}
+
 @media (max-width: 900px) {
   .nav {
     grid-template-columns: 1fr auto;
     justify-content: space-between;
-    width: calc(100% - 24px);
-    padding: 0 14px;
+    width: calc(100% - 20px);
+    padding: 0 12px;
+    height: 52px;
   }
 
   .nav-tag {
@@ -774,6 +914,27 @@ html[data-theme="light"] .foot-mark {
 
   .nav-cta-ghost {
     display: none;
+  }
+
+  .nav-burger {
+    display: flex;
+  }
+
+  .nav-backdrop.is-open {
+    display: block;
+  }
+
+  .nav-actions {
+    gap: 8px;
+  }
+
+  .nav-cta {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .nav .nav-mark {
+    height: 40px !important;
   }
 }
 
@@ -1219,9 +1380,10 @@ h3 {
 /* Hero fold spacing: see `.stage.stage-hero` (Reference-style section skin) */
 .hero-inner {
   text-align: center;
-  max-width: min(880px, calc(100vw - 48px));
+  max-width: min(880px, 100%);
   margin: 0 auto;
   position: relative;
+  padding-inline: var(--pad);
 }
 
 /* Parallax decorative layer (hero only) */
@@ -1765,13 +1927,46 @@ h3 {
 }
 
 @media (max-width: 900px) {
-  .split {
-    grid-template-columns: 1fr;
-    gap: 48px;
+  .split,
+  .stage-inner.split,
+  .stage-inner.split.split-flip {
+    grid-template-columns: 1fr !important;
+    align-items: stretch;
+    gap: 32px;
+    width: 100%;
+  }
+
+  .split-copy,
+  .split-art {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .split-copy .lede {
+    max-width: 100%;
   }
 
   .split-flip {
     direction: ltr;
+  }
+
+  .bullets li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: flex-start;
+    grid-template-columns: unset;
+  }
+
+  .bullets li::before {
+    flex-shrink: 0;
+    margin-top: 9px;
+  }
+
+  .bullets li strong {
+    flex: 0 0 auto;
+    max-width: 100%;
   }
 }
 
@@ -3437,9 +3632,9 @@ h3 {
 
 .stage-inner {
   position: relative;
-  max-width: min(1120px, calc(100vw - 72px));
+  max-width: min(1120px, calc(100% - 2 * var(--pad)));
   margin: 0 auto;
-  min-height: clamp(520px, 78vh, 760px);
+  min-height: clamp(420px, 72vh, 680px);
   background: transparent;
   border: none;
   border-radius: 0;
@@ -3449,7 +3644,7 @@ h3 {
 }
 
 .split {
-  grid-template-columns: minmax(420px, 1.08fr) minmax(300px, 0.92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   gap: clamp(20px, 2.4vw, 36px);
   align-items: flex-start;
 }
@@ -3509,12 +3704,12 @@ h3 {
 
 @media (max-width: 1024px) {
   .stage-inner {
-    max-width: min(1080px, calc(100vw - 30px));
-    min-height: clamp(500px, 74vh, 700px);
+    max-width: min(100%, calc(100% - 24px));
+    min-height: clamp(380px, 68vh, 620px);
   }
 
   .split {
-    grid-template-columns: minmax(360px, 1fr) minmax(280px, 0.95fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
     gap: 22px;
   }
 
@@ -3522,7 +3717,7 @@ h3 {
   .section-head,
   .loop-hero-inner,
   .cta-inner {
-    padding-left: clamp(32px, 4vw, 56px);
+    padding-left: clamp(24px, 3.5vw, 48px);
   }
 }
 
@@ -3536,13 +3731,17 @@ h3 {
 
   .stage-inner {
     border-radius: 0;
-    max-width: calc(100vw - 18px);
+    max-width: calc(100% - 18px);
     min-height: auto;
   }
 
   .split,
-  .split.split-flip {
-    grid-template-columns: 1fr;
+  .split.split-flip,
+  .stage-inner.split,
+  .stage-inner.split.split-flip {
+    grid-template-columns: 1fr !important;
+    align-items: stretch;
+    width: 100%;
   }
 
   .split-copy,
@@ -3550,6 +3749,8 @@ h3 {
   .loop-hero-inner,
   .cta-inner {
     max-width: none;
+    width: 100%;
+    min-width: 0;
     padding-left: 20px;
     padding-right: 16px;
     padding-top: 22px;
@@ -3557,6 +3758,7 @@ h3 {
   }
 
   .split-art {
+    width: 100%;
     min-width: 0;
     max-width: 100%;
     padding: 10px 12px 16px;
@@ -3693,6 +3895,8 @@ h3 {
 .platform-stages-main {
   flex: 1 1 0%;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* ═══════════════════════════════════════════════
@@ -3818,7 +4022,7 @@ h3 {
    FOOTER
    ============================================================ */
 .site-foot {
-  background: var(--bg-0);
+  background: transparent;
   border-top: 1px solid var(--bdr);
   padding: 4px var(--pad) 2px;
   position: relative;
@@ -4570,8 +4774,9 @@ html[data-theme="light"] .split-copy h2 {
 }
 
 /* ── Senzai Loop section ── */
+/* Keep transparent so the fixed .world / govern-ring shows through (same as dark theme). */
 html[data-theme="light"] .stage-loop {
-  background: #FFFFFF;
+  background: transparent;
 }
 
 html[data-theme="light"] .loop-hero-pill {
@@ -4679,17 +4884,17 @@ html[data-theme="light"] .bullets li::before {
 }
 
 
-/* Platform side nav */
+/* Platform side nav — subtle rails (low glow) */
 html[data-theme="light"] .platform-stages-shell::before {
-  background: #93C5FD;
-  width: 2px;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4), 0 0 16px rgba(59, 130, 246, 0.15);
+  background: rgba(147, 197, 253, 0.55);
+  width: 1px;
+  box-shadow: none;
 }
 
 html[data-theme="light"] .platform-stages-shell::after {
-  background: #93C5FD;
-  height: 2px;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4), 0 0 16px rgba(59, 130, 246, 0.15);
+  background: rgba(147, 197, 253, 0.55);
+  height: 1px;
+  box-shadow: 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 html[data-theme="light"] .pnav__label {
@@ -4752,9 +4957,9 @@ html[data-theme="light"] .lt-nav-dot {
   box-shadow: 0 0 8px rgba(37, 99, 235, 0.50);
 }
 
-/* ── Testimonials section ── */
-html[data-theme="light"] .stage-testi {
-  background: linear-gradient(180deg, #F0F7FF 0%, #FFFFFF 100%);
+/* ── Testimonials section (class is stage-testimonials on the section) ── */
+html[data-theme="light"] .stage-testimonials {
+  background: transparent;
 }
 
 html[data-theme="light"] .testi,
@@ -4921,7 +5126,7 @@ html[data-theme="light"] .cta-tag {
 
 /* ── Footer ── */
 html[data-theme="light"] .site-foot {
-  background: #F8FAFC;
+  background: transparent;
   border-top: 1px solid #E2E8F0;
 }
 
@@ -5020,16 +5225,15 @@ html[data-theme="light"] .mk-card:hover {
   box-shadow: 0 8px 32px rgba(10, 22, 40, 0.10);
 }
 
-/* ── Alternating section backgrounds ── */
+/* ── Section shells: transparent so fixed .world / govern-ring shows through ── */
+html[data-theme="light"] #problem,
 html[data-theme="light"] #decide,
-html[data-theme="light"] #accelerate,
-html[data-theme="light"] #govern {
-  background: #FFFFFF;
-}
-
 html[data-theme="light"] #design,
-html[data-theme="light"] #reuse {
-  background: #F7F9FC;
+html[data-theme="light"] #accelerate,
+html[data-theme="light"] #govern,
+html[data-theme="light"] #reuse,
+html[data-theme="light"] #testimonials {
+  background: transparent;
 }
 
 /* ── AI energy flow spine — lighter on white bg ── */
@@ -5134,6 +5338,677 @@ html[data-theme="light"] .depth-chip.lit {
 
 html[data-theme="light"] .ai-energy-flow {
   opacity: 0.18;
+}
+
+/* ============================================================
+   LIGHT THEME — Comprehensive Visual Fixes
+   ============================================================ */
+
+/* ── 1. Problem Section Cards: invisible description text ── */
+html[data-theme="light"] .problem-card p,
+html[data-theme="light"] .flip-card-back p {
+  color: #334155;
+}
+html[data-theme="light"] .problem-card h3,
+html[data-theme="light"] .flip-card-back h3 {
+  color: #0A1628;
+}
+html[data-theme="light"] .flip-card-face {
+  background: #F8FAFC;
+}
+html[data-theme="light"] .problem-card:hover .flip-card-face {
+  background: #EFF6FF;
+}
+
+/* ── 2. Radar Chart: faint axis labels ── */
+html[data-theme="light"] .radar-item {
+  color: #334155;
+}
+html[data-theme="light"] .radar-chip {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1D4ED8;
+  border-color: rgba(37, 99, 235, 0.2);
+}
+html[data-theme="light"] .radar-fl {
+  color: #475569;
+}
+
+/* ── 3. Design section: bullet secondary descriptions ── */
+html[data-theme="light"] .bullets li {
+  color: #334155;
+}
+html[data-theme="light"] .bullets li > *:last-child {
+  color: #64748B;
+}
+
+/* ── 4. Accelerate section: Agent Factory faint labels ── */
+html[data-theme="light"] .fac-row {
+  background: rgba(248, 250, 252, 0.9);
+  border-color: #E2E8F0;
+}
+html[data-theme="light"] .fac-row-top,
+html[data-theme="light"] .fac-row-rich {
+  color: #1E293B;
+}
+html[data-theme="light"] .fac-row-sub,
+html[data-theme="light"] .fac-row-meta,
+html[data-theme="light"] .fac-row-status {
+  color: #475569;
+}
+html[data-theme="light"] .fac-agent-stack {
+  background: rgba(240, 247, 255, 0.95);
+  border-color: #BFDBFE;
+}
+
+/* ── 5. Testimonial Slider: inactive slides keep dark bg ── */
+html[data-theme="light"] .ts-slide[data-state="previous"] .ts-slide__inner,
+html[data-theme="light"] .ts-slide[data-state="next"] .ts-slide__inner {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+}
+html[data-theme="light"] .ts-slide[data-state="previous"] .ts-slide--quote span,
+html[data-theme="light"] .ts-slide[data-state="next"] .ts-slide--quote span {
+  color: #64748B;
+}
+html[data-theme="light"] .ts-slide[data-state="previous"] .ts-slide--name span,
+html[data-theme="light"] .ts-slide[data-state="next"] .ts-slide--name span {
+  color: #0F172A;
+}
+
+/* ── 6. Footer: invisible logo on white background ── */
+html[data-theme="light"] .foot-mark {
+  filter: none;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+html[data-theme="light"] .site-foot,
+html[data-theme="light"] .foot-copy {
+  color: #475569;
+}
+html[data-theme="light"] .foot-copy a,
+html[data-theme="light"] .foot-copy strong {
+  color: #1E293B;
+}
+
+/* ── 7. Govern section: prevent title overflow/clip ── */
+html[data-theme="light"] #govern .split-copy h2,
+html[data-theme="light"] #govern h2 {
+  overflow: visible;
+  white-space: normal;
+  font-size: clamp(24px, 3vw, 40px);
+}
+
+/* ── 8. Portfolio columns: "Blueprinted203" merged text ── */
+html[data-theme="light"] .pf-col-head {
+  color: #1E293B;
+}
+html[data-theme="light"] .pf-count {
+  color: #64748B;
+  margin-left: 6px;
+}
+html[data-theme="light"] .pf-tag {
+  background: rgba(226, 232, 240, 0.7);
+  color: #475569;
+}
+html[data-theme="light"] .pf-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #1E293B;
+}
+html[data-theme="light"] .pf-card-val {
+  color: #475569;
+}
+
+/* ── 9. General: any remaining low-contrast sub-labels ── */
+html[data-theme="light"] .screen-label,
+html[data-theme="light"] .screen-sub,
+html[data-theme="light"] .screen-badge {
+  color: #475569;
+}
+html[data-theme="light"] .screen-title {
+  color: #0A1628;
+}
+html[data-theme="light"] .ls-t {
+  color: #0A1628;
+}
+html[data-theme="light"] .ls-sub {
+  color: #64748B;
+}
+html[data-theme="light"] .mk-col,
+html[data-theme="light"] .mk-label {
+  color: #334155;
+}
+
+/* ============================================================
+   LAPTOP SCREENS — MacBook, Dell, HP (901px–1600px, common heights)
+   ============================================================ */
+
+/* 14–16" laptops, scaled 1080p */
+@media (max-width: 1440px) and (min-width: 901px) {
+  :root {
+    --container: 1120px;
+    --pad: 28px;
+    --world-ring-size: 640px;
+    --world-orbit-r: 293px;
+  }
+
+  .nav {
+    width: calc(100% - 40px);
+    max-width: 1180px;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    padding: 5px 11px;
+  }
+
+  .tilt:hover {
+    transform: perspective(1400px) rotateY(-5deg) rotateX(2deg) translateY(-4px);
+  }
+
+  .tilt-flip:hover {
+    transform: perspective(1400px) rotateY(5deg) rotateX(2deg) translateY(-4px);
+  }
+}
+
+/* Very common 1366×768 / 1366×768 Windows laptops */
+@media (max-width: 1366px) and (min-width: 901px) {
+  :root {
+    --container: 1080px;
+    --pad: 26px;
+    --world-ring-size: 600px;
+    --world-orbit-r: 275px;
+  }
+
+  .stage {
+    padding-left: var(--pad);
+    padding-right: var(--pad);
+  }
+
+  .stage-inner {
+    min-height: clamp(400px, 70vh, 640px);
+  }
+
+  .split-copy {
+    max-width: 520px;
+    padding-left: clamp(16px, 2.5vw, 32px);
+    padding-right: clamp(12px, 2vw, 24px);
+  }
+
+  .split-art {
+    padding: clamp(10px, 1.5vw, 18px);
+  }
+
+  .bullets li {
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+
+  .bullets li strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .problem-card {
+    min-height: 320px;
+  }
+
+  .flip-card-face {
+    padding: 38px 28px 32px;
+  }
+
+  .problem-num {
+    font-size: 60px;
+  }
+
+  .pnav--vert {
+    width: 160px;
+    padding-left: 24px;
+  }
+
+  .platform-stages-shell::before {
+    left: calc(24px + 7px);
+  }
+
+  .platform-stages-main .stage-inner {
+    max-width: 100%;
+  }
+}
+
+/* 13" MacBook Air, many 1280×800 / 1280×720 business laptops */
+@media (max-width: 1280px) and (min-width: 901px) {
+  :root {
+    --container: 1000px;
+    --pad: 24px;
+    --world-ring-size: 540px;
+    --world-orbit-r: 248px;
+  }
+
+  .nav {
+    width: calc(100% - 32px);
+    padding: 0 16px;
+    height: 52px;
+  }
+
+  .nav-links {
+    gap: 2px;
+  }
+
+  .nav-links a {
+    font-size: 12px;
+    padding: 4px 9px;
+  }
+
+  .nav-cta,
+  .nav-cta-ghost {
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+
+  .stage-inner {
+    min-height: clamp(360px, 66vh, 580px);
+  }
+
+  .split {
+    gap: 18px;
+  }
+
+  .split-copy h2 {
+    font-size: clamp(24px, 2.8vw, 36px);
+  }
+
+  .pnav--vert {
+    width: 148px;
+    padding-left: 20px;
+  }
+
+  .platform-stages-shell::before {
+    left: calc(20px + 7px);
+  }
+
+  .pnav__label {
+    font-size: 12px;
+  }
+
+  .loop-hero-title-centered {
+    font-size: clamp(1.85rem, 3.8vw, 3rem);
+  }
+
+  .problem-grid {
+    border-radius: 14px;
+  }
+
+  .problem-card {
+    min-height: 300px;
+  }
+
+  .screen {
+    max-width: 100%;
+  }
+
+  .testi-grid {
+    gap: 14px;
+  }
+
+  .testi {
+    padding: 26px 22px;
+  }
+
+  html[data-theme="light"] h1 {
+    font-size: clamp(36px, 4.5vw, 52px);
+  }
+
+  html[data-theme="light"] h2 {
+    font-size: clamp(28px, 3.2vw, 36px);
+  }
+}
+
+/* Compact laptop / small window (still above tablet breakpoint) */
+@media (max-width: 1100px) and (min-width: 901px) {
+  :root {
+    --world-ring-size: 480px;
+    --world-orbit-r: 220px;
+  }
+
+  .split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.88fr);
+    gap: 16px;
+  }
+
+  .split-copy {
+    max-width: 100%;
+  }
+}
+
+/* Short laptop displays (768–900px height): reduce vertical dead space */
+@media (max-height: 860px) and (min-width: 901px) {
+  .stage {
+    min-height: auto;
+    padding-top: clamp(40px, 5vh, 64px);
+    padding-bottom: clamp(40px, 5vh, 64px);
+  }
+
+  .stage.stage-hero {
+    min-height: min(100vh, 860px);
+    padding-top: calc(var(--nav-scroll-offset, 80px) + 12px);
+    padding-bottom: clamp(28px, 4vh, 48px);
+  }
+
+  .stage-inner {
+    min-height: clamp(320px, 58vh, 520px);
+  }
+
+  .stage-loop {
+    padding-top: clamp(48px, 7vh, 96px);
+    padding-bottom: clamp(48px, 7vh, 96px);
+  }
+
+  .stage-cta {
+    padding: clamp(72px, 10vh, 100px) var(--pad);
+  }
+
+  .problem-card {
+    min-height: 280px;
+  }
+
+  .hero-parallax-bg {
+    height: 380px;
+    top: 32%;
+  }
+
+  html[data-theme="light"] .stage:not(.stage-hero):not(.stage-loop) {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+/* Wide but short (e.g. 1920×1080 at 125% OS scale ≈ 1536×864) */
+@media (max-height: 720px) and (min-width: 901px) {
+  .stage.stage-hero {
+    min-height: 100vh;
+  }
+
+  .stage-inner {
+    min-height: clamp(280px, 52vh, 460px);
+  }
+}
+
+/* ============================================================
+   MOBILE — phones & small tablets (≤900px), dark + light
+   ============================================================ */
+@media (max-width: 900px) {
+  :root {
+    --pad: 16px;
+    --container: 100%;
+    --world-ring-size: min(92vw, 400px);
+    --world-orbit-r: calc(var(--world-ring-size) * 0.458);
+  }
+
+  .world {
+    opacity: 0.45;
+  }
+
+  .stage.stage-hero {
+    min-height: auto;
+    padding-top: calc(var(--nav-scroll-offset, 52px) + 20px);
+    padding-bottom: 40px;
+  }
+
+  .stage.stage-loop {
+    min-height: auto;
+    padding-top: clamp(56px, 12vw, 88px);
+    padding-bottom: clamp(48px, 10vw, 72px);
+  }
+
+  .stage-cta {
+    padding: 72px var(--pad);
+  }
+
+  .loop-hero-inner.centered-layout {
+    max-width: 100%;
+    padding-inline: var(--pad);
+  }
+
+  .loop-hero-title-centered {
+    font-size: clamp(1.65rem, 7.5vw, 2.35rem);
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .loop-hero-desc-centered {
+    font-size: 15px;
+    max-width: 100%;
+    padding-inline: 4px;
+  }
+
+  .loop-hero-pill-wrap {
+    margin-bottom: 24px;
+  }
+
+  .platform-stages-shell::before,
+  .platform-stages-shell::after {
+    display: none;
+  }
+
+  .pnav--horiz {
+    position: sticky;
+    top: var(--nav-scroll-offset, 52px);
+    z-index: 35;
+  }
+
+  .split.split-flip,
+  .stage-inner.split.split-flip {
+    direction: ltr;
+  }
+
+  .split.split-flip > *,
+  .stage-inner.split.split-flip > * {
+    direction: ltr;
+  }
+
+  .stage-inner.split .split-copy,
+  .stage-inner.split .split-art {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .split-copy h2,
+  .split-copy .lede {
+    max-width: 100%;
+  }
+
+  .split-copy h2 span {
+    display: inline;
+  }
+
+  .tilt,
+  .tilt-flip,
+  .screen.tilt,
+  .screen.tilt-flip {
+    transform: none !important;
+  }
+
+  .tilt:hover,
+  .tilt-flip:hover,
+  .screen.tilt:hover,
+  .screen.tilt-flip:hover {
+    transform: translateY(-2px) !important;
+  }
+
+  .screen {
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .problem-card {
+    min-height: 280px;
+  }
+
+  .flip-card-face {
+    padding: 32px 22px 28px;
+  }
+
+  .problem-num {
+    font-size: 52px;
+  }
+
+  .problem-media img {
+    height: 140px;
+  }
+
+  .bullets li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: flex-start;
+    grid-template-columns: unset;
+    font-size: 13px;
+  }
+
+  .bullets li::before {
+    flex-shrink: 0;
+  }
+
+  .bullets li strong {
+    display: inline;
+    flex: 0 0 auto;
+    max-width: 100%;
+    margin-bottom: 0;
+  }
+
+  .section-head {
+    margin-bottom: 36px;
+  }
+
+  .section-head-center {
+    margin-bottom: 40px;
+    padding-inline: var(--pad);
+  }
+
+  .cta-inner h2 {
+    font-size: clamp(26px, 7vw, 36px);
+  }
+
+  .foot-mark {
+    height: 48px !important;
+  }
+
+  #theme-toggle-btn {
+    top: 12px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    z-index: 210 !important;
+  }
+
+  html:not([data-theme="light"]) #theme-toggle-btn {
+    background: rgba(10, 14, 26, 0.94) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: rgba(220, 235, 255, 0.92) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  html[data-theme="light"] .stage:not(.stage-hero):not(.stage-loop) {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  html[data-theme="light"] h1 {
+    font-size: clamp(28px, 8vw, 40px);
+  }
+
+  html[data-theme="light"] h2 {
+    font-size: clamp(24px, 6.5vw, 32px);
+  }
+
+  html[data-theme="light"] .hero-title {
+    font-size: clamp(30px, 8.5vw, 44px);
+  }
+
+  html[data-theme="light"] #cta {
+    margin: 0;
+    padding: 64px var(--pad);
+  }
+
+  html[data-theme="light"] #cta .cta-inner h2 {
+    font-size: clamp(26px, 7vw, 34px);
+  }
+
+  html[data-theme="light"] .loop-hero-divider-line {
+    box-shadow: none;
+  }
+
+  html[data-theme="light"] .nav-drawer__cta.btn-primary {
+    color: #fff;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --pad: 14px;
+    --world-ring-size: min(88vw, 340px);
+    --world-orbit-r: calc(var(--world-ring-size) * 0.458);
+  }
+
+  .nav {
+    width: calc(100% - 16px);
+  }
+
+  .nav-cta {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .hero-title {
+    font-size: clamp(28px, 9vw, 40px);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+
+  .hero-eyebrow {
+    font-size: 9px;
+    padding: 6px 14px 6px 12px;
+    margin-bottom: 16px;
+  }
+
+  .stage-inner {
+    max-width: calc(100% - 12px);
+  }
+
+  .problem-grid {
+    border-radius: 12px;
+  }
+
+  .problem-card {
+    min-height: 260px;
+  }
+
+  .stage-cta {
+    padding: 56px var(--pad);
+  }
+
+  .ts-slider {
+    --ts-card-width: min(78vw, 280px);
+    padding: 24px 0 20px;
+  }
+
+  .pf-cols,
+  .radar-wrap {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .nav-cta {
+    display: none;
+  }
+
+  .nav-drawer__cta {
+    display: inline-flex !important;
+  }
 }
 
 </style>
@@ -5815,6 +6690,19 @@ export {
 };
 
 
+// ── Primary nav links (desktop + mobile drawer) ──
+const NAV_ITEMS = [
+  ["#problem", "Why Senzai"],
+  ["#decide", "Decide"],
+  ["#design", "Design"],
+  ["#accelerate", "Accelerate"],
+  ["#govern", "Govern"],
+  ["#reuse", "Reuse"]
+];
+
+const prefersSmoothScroll = () =>
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 // ── Platform Rail ──
 const SLUGS = ["decide", "design", "accelerate", "govern", "reuse"];
 const LABELS = ["Decide", "Design", "Accelerate", "Govern", "Reuse"];
@@ -6233,6 +7121,7 @@ function AnimatedHeadline({ words, breakAfterIndex, reduce }) {
 function App() {
   const appRef = useRef(null);
   const navRef = useRef(null);
+  const [navOpen, setNavOpen] = useState(false);
   const blueprintRef = useRef(null);
   const bpTimersRef = useRef([]);
   const scoreRafRef = useRef(null);
@@ -6395,7 +7284,20 @@ function App() {
     ) || 0;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top: Math.max(0, top), behavior });
+    setNavOpen(false);
   }, []);
+  useEffect(() => {
+    document.body.classList.toggle("nav-open", navOpen);
+    return () => document.body.classList.remove("nav-open");
+  }, [navOpen]);
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
   useLayoutEffect(() => {
     const raw = window.location.hash.slice(1);
     if (!raw) return;
@@ -6758,17 +7660,63 @@ function App() {
       React.createElement("span", { className: "depth-chip" }, "142 tests passing")
     )
   ),
-  /* @__PURE__ */ React.createElement(AiEnergyFlowOverlay, { containerRef: appRef }), /* @__PURE__ */ React.createElement("header", { ref: navRef, className: "nav", "data-nav": "" }, /* @__PURE__ */ React.createElement("a", { href: "#", className: "nav-brand", "aria-label": "Home" }, /* @__PURE__ */ React.createElement("img", { src: "./senzai-logo.jpeg", alt: "Logo", className: "nav-mark", style: { height: "48px" } })), /* @__PURE__ */ React.createElement("nav", { className: "nav-links", "aria-label": "Primary" }, /* @__PURE__ */ React.createElement("a", { href: "#problem" }, "Why Senzai"), /* @__PURE__ */ React.createElement("a", { href: "#decide" }, "Decide"), /* @__PURE__ */ React.createElement("a", { href: "#design" }, "Design"), /* @__PURE__ */ React.createElement("a", { href: "#accelerate" }, "Accelerate"), /* @__PURE__ */ React.createElement("a", { href: "#govern" }, "Govern"), /* @__PURE__ */ React.createElement("a", { href: "#reuse" }, "Reuse")), /* @__PURE__ */ React.createElement("div", { className: "nav-actions" }, /* @__PURE__ */ React.createElement(
-    motion.a,
-    {
-      className: "nav-cta",
+  /* @__PURE__ */ React.createElement(AiEnergyFlowOverlay, { containerRef: appRef }),
+  /* @__PURE__ */ React.createElement("header", { ref: navRef, className: "nav", "data-nav": "" },
+    /* @__PURE__ */ React.createElement("a", { href: "#", className: "nav-brand", "aria-label": "Home" }, /* @__PURE__ */ React.createElement("img", { src: "./senzai-logo.jpeg", alt: "Logo", className: "nav-mark", style: { height: "48px" } })),
+    /* @__PURE__ */ React.createElement("nav", { className: "nav-links", "aria-label": "Primary" }, NAV_ITEMS.map(([href, label]) => /* @__PURE__ */ React.createElement("a", { key: href, href }, label))),
+    /* @__PURE__ */ React.createElement("div", { className: "nav-actions" },
+      /* @__PURE__ */ React.createElement("button", {
+        type: "button",
+        className: `nav-burger${navOpen ? " is-open" : ""}`,
+        "aria-expanded": navOpen,
+        "aria-controls": "nav-drawer",
+        "aria-label": navOpen ? "Close menu" : "Open menu",
+        onClick: () => setNavOpen((open) => !open)
+      }, /* @__PURE__ */ React.createElement("span", { "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("span", { "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("span", { "aria-hidden": "true" })),
+      /* @__PURE__ */ React.createElement(
+        motion.a,
+        {
+          className: "nav-cta",
+          href: "#cta",
+          whileHover: reduce ? void 0 : { y: -2, scale: 1.02 },
+          whileTap: reduce ? void 0 : { scale: 0.98 },
+          transition: { duration: 0.26, ease: EASE }
+        },
+        "Request Demo"
+      )
+    )
+  ),
+  navOpen && /* @__PURE__ */ React.createElement("button", {
+    type: "button",
+    className: "nav-backdrop is-open",
+    "aria-label": "Close menu",
+    onClick: () => setNavOpen(false)
+  }),
+  /* @__PURE__ */ React.createElement("nav", {
+    id: "nav-drawer",
+    className: `nav-drawer${navOpen ? " is-open" : ""}`,
+    "aria-hidden": navOpen ? void 0 : "true",
+    "aria-label": "Mobile navigation"
+  },
+    NAV_ITEMS.map(([href, label]) => /* @__PURE__ */ React.createElement("a", {
+      key: href,
+      href,
+      className: "nav-drawer__link",
+      onClick: (e) => {
+        e.preventDefault();
+        scrollToSectionId(href.slice(1), prefersSmoothScroll() ? "smooth" : "auto");
+      }
+    }, label)),
+    /* @__PURE__ */ React.createElement("a", {
       href: "#cta",
-      whileHover: reduce ? void 0 : { y: -2, scale: 1.02 },
-      whileTap: reduce ? void 0 : { scale: 0.98 },
-      transition: { duration: 0.26, ease: EASE }
-    },
-    "Request Demo"
-  ))), /* @__PURE__ */ React.createElement("main", { id: "top" }, /* @__PURE__ */ React.createElement(
+      className: "nav-drawer__link nav-drawer__cta btn btn-primary",
+      onClick: (e) => {
+        e.preventDefault();
+        scrollToSectionId("cta", prefersSmoothScroll() ? "smooth" : "auto");
+      }
+    }, "Request Demo")
+  ),
+  /* @__PURE__ */ React.createElement("main", { id: "top" }, /* @__PURE__ */ React.createElement(
     motion.section,
     {
       className: "stage stage-hero",
