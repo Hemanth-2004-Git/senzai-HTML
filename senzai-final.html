@@ -189,6 +189,7 @@ a {
   overflow: hidden;
   perspective: 1400px;
   transform-style: preserve-3d;
+  transition: opacity 0.55s cubic-bezier(.22, 1, .36, 1);
 }
 
 .world-bg {
@@ -265,6 +266,18 @@ a {
   background: radial-gradient(circle, rgba(61, 82, 160, .45), transparent 62%);
 }
 
+/* Dial Group Wrapper to handle off-center translations */
+.world-dial-group {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 720px;
+  height: 720px;
+  transform: translate(calc(-50% + var(--world-x, 0px)), -50%);
+  transform-origin: center;
+  transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
+}
+
 /* Govern Ring — anchors center, scales/rotates with scroll */
 .govern-ring {
   position: absolute;
@@ -274,7 +287,7 @@ a {
   height: 720px;
   transform: translate(-50%, -50%) scale(var(--ring-scale, 1)) rotate(var(--ring-rot, 0deg));
   transform-origin: center;
-  transition: transform 0.4s cubic-bezier(.22, 1, .36, 1);
+  transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
   filter: drop-shadow(0 0 40px rgba(112, 145, 230, .14));
 }
 
@@ -309,7 +322,7 @@ a {
   width: 720px;
   height: 720px;
   transform: translate(-50%, -50%) scale(var(--ring-scale, 1));
-  transition: transform 0.4s cubic-bezier(.22, 1, .36, 1);
+  transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
 }
 
 .loop-node {
@@ -368,7 +381,7 @@ a {
   width: 92px;
   height: 92px;
   transform: translate(-50%, -50%) scale(var(--core-scale, 1));
-  transition: transform 0.4s cubic-bezier(.22, 1, .36, 1);
+  transition: transform 0.7s cubic-bezier(.22, 1, .36, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -379,7 +392,14 @@ a {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  opacity: .85;
+  opacity: .35;
+  filter: invert(1) hue-rotate(180deg) brightness(1.1);
+  mix-blend-mode: screen;
+}
+html[data-theme="light"] .world-core img {
+  filter: none;
+  mix-blend-mode: multiply;
+  opacity: .12;
 }
 
 /* Depth layers — floating ambient chips */
@@ -484,6 +504,61 @@ a {
   .loop-node {
     transform: rotate(var(--angle)) translateY(-220px) rotate(calc(-1 * var(--angle)));
   }
+}
+
+/* Floating depth-chip drift animations */
+@keyframes chip-drift-a {
+  0%   { transform: translateY(0px) translateX(0px); opacity: .55; }
+  33%  { transform: translateY(-8px) translateX(4px); opacity: .70; }
+  66%  { transform: translateY(-4px) translateX(-6px); opacity: .60; }
+  100% { transform: translateY(0px) translateX(0px); opacity: .55; }
+}
+@keyframes chip-drift-b {
+  0%   { transform: translateY(0px) translateX(0px); opacity: .45; }
+  40%  { transform: translateY(6px) translateX(-5px); opacity: .60; }
+  75%  { transform: translateY(-5px) translateX(3px); opacity: .50; }
+  100% { transform: translateY(0px) translateX(0px); opacity: .45; }
+}
+@keyframes chip-drift-c {
+  0%   { transform: translateY(0px) translateX(0px); opacity: .38; }
+  50%  { transform: translateY(-10px) translateX(6px); opacity: .55; }
+  100% { transform: translateY(0px) translateX(0px); opacity: .38; }
+}
+
+/* Apply different drift animations per chip */
+.depth-far .depth-chip:nth-child(1)  { animation: chip-drift-a 11s ease-in-out infinite; }
+.depth-far .depth-chip:nth-child(2)  { animation: chip-drift-b 14s ease-in-out infinite 2s; }
+.depth-far .depth-chip:nth-child(3)  { animation: chip-drift-c 9s  ease-in-out infinite 1s; }
+.depth-far .depth-chip:nth-child(4)  { animation: chip-drift-a 13s ease-in-out infinite 4s; }
+.depth-far .depth-chip:nth-child(5)  { animation: chip-drift-b 10s ease-in-out infinite 3s; }
+.depth-far .depth-chip:nth-child(6)  { animation: chip-drift-c 12s ease-in-out infinite 1.5s; }
+.depth-mid .depth-chip:nth-child(1)  { animation: chip-drift-b 15s ease-in-out infinite; }
+.depth-mid .depth-chip:nth-child(2)  { animation: chip-drift-a 11s ease-in-out infinite 5s; }
+.depth-mid .depth-chip:nth-child(3)  { animation: chip-drift-c 13s ease-in-out infinite 2.5s; }
+.depth-mid .depth-chip:nth-child(4)  { animation: chip-drift-a 10s ease-in-out infinite 0.8s; }
+
+/* Node pulse ring */
+@keyframes node-ping {
+  0%   { transform: translate(-50%,-50%) scale(1); opacity: .7; }
+  70%  { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+  100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+}
+.loop-node-ping {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--senzai-teal-bright);
+  opacity: 0;
+  pointer-events: none;
+}
+.loop-node.lit .loop-node-ping {
+  animation: node-ping 2.4s ease-out infinite;
+}
+
+/* World hidden in light mode */
+html[data-theme="light"] .world {
+  opacity: .08;
 }
 
 /* ============================================================
@@ -895,6 +970,44 @@ html[data-theme="light"] .foot-mark {
   line-height: 1.75;
   color: rgba(226, 232, 240, 0.82);
   letter-spacing: 0.01em;
+}
+
+.loop-hero-inner.centered-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loop-hero-title-centered {
+  font-family: var(--f-d);
+  font-weight: 600;
+  font-size: clamp(2.2rem, 4.8vw, 4.0rem);
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 auto 28px auto;
+  max-width: 860px;
+  text-shadow: 0 0 40px rgba(96, 165, 250, 0.2);
+}
+
+.loop-hero-desc-centered {
+  font-family: var(--f-s), system-ui, sans-serif;
+  font-size: clamp(16px, 1.2vw, 19px);
+  line-height: 1.65;
+  color: rgba(226, 232, 240, 0.85);
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.loop-hero-desc-centered p {
+  margin: 0 0 14px 0;
+}
+
+.loop-hero-desc-centered p:last-child {
+  margin-bottom: 0;
+  color: rgba(226, 232, 240, 0.7);
 }
 
 
@@ -3315,11 +3428,10 @@ h3 {
 
 /* First fold: clear fixed nav + gap; no forced inner min-height (avoids dead space above pipeline) */
 .stage.stage-hero {
-  align-items: start;
-  min-height: auto;
-  padding-top: max(clamp(120px, 14vh, 188px),
-      calc(12px + var(--nav-scroll-offset, 80px) + clamp(44px, 5.5vh, 64px)));
-  padding-bottom: clamp(28px, 4vh, 48px);
+  align-items: center;
+  min-height: 100vh;
+  padding-top: calc(var(--nav-scroll-offset, 80px) + 20px);
+  padding-bottom: clamp(40px, 6vh, 80px);
 }
 
 .stage.stage-hero>.stage-inner.hero-inner {
@@ -4483,10 +4595,16 @@ html[data-theme="light"] .loop-hero-pill {
   backdrop-filter: none;
 }
 
-html[data-theme="light"] .loop-hero-title {
+html[data-theme="light"] .loop-hero-title,
+html[data-theme="light"] .loop-hero-title-centered {
   color: #0A1628;
-  font-weight: 300;
-  font-size: clamp(2.1rem, 4.2vw, 3.65rem);
+}
+
+html[data-theme="light"] .loop-hero-desc-centered {
+  color: #475569;
+}
+html[data-theme="light"] .loop-hero-desc-centered p:last-child {
+  color: #64748B;
 }
 
 html[data-theme="light"] .loop-hero-divider-line {
@@ -5371,28 +5489,7 @@ function AiOpportunityRadar() {
       transition: { duration: 0.35, delay: 0.12 }
     },
     "Explore AI opportunities. Click any point to see details."
-  )), /* @__PURE__ */ React.createElement("button", { type: "button", className: "radar-cta", "aria-label": "Radar actions" }, "\xB7\xB7\xB7")), /* @__PURE__ */ React.createElement("div", { className: "radar-filters" }, /* @__PURE__ */ React.createElement("span", { className: "radar-fl" }, "Filter:"), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "radar-chip radar-chip-interactive",
-      onClick: () => {
-        const i = VERTICAL_CYCLE.indexOf(vertical);
-        setVertical(VERTICAL_CYCLE[(i + 1) % VERTICAL_CYCLE.length]);
-      }
-    },
-    vertical === "all" ? "All Verticals" : vertical,
-    " \u25BE"
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "radar-chip radar-chip-interactive",
-      onClick: () => setSortMode((m) => m === "rank" ? "stage" : "rank")
-    },
-    sortMode === "rank" ? "By rank" : "By stage",
-    " \u25BE"
-  ), /* @__PURE__ */ React.createElement("span", { className: "radar-chip radar-chip-count" }, countLabel)), /* @__PURE__ */ React.createElement("div", { className: "radar-wrap radar-flip-container" }, /* @__PURE__ */ React.createElement("div", { className: "radar-flip-inner" }, /* @__PURE__ */ React.createElement("div", { className: "radar-flip-front radar-canvas" }, /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("button", { type: "button", className: "radar-cta", "aria-label": "Radar actions" }, "\xB7\xB7\xB7")), /* @__PURE__ */ React.createElement("div", { className: "radar-wrap radar-flip-container" }, /* @__PURE__ */ React.createElement("div", { className: "radar-flip-inner" }, /* @__PURE__ */ React.createElement("div", { className: "radar-flip-front radar-canvas" }, /* @__PURE__ */ React.createElement(
     "svg",
     {
       viewBox: "-124 -124 248 248",
@@ -5900,140 +5997,7 @@ const whyGovernance = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h
 
 
 // ── App ──
-const PIPELINE_LABELS = [
-  { label: "Decide", pct: 0.08 },
-  { label: "Design", pct: 0.25 },
-  { label: "Accelerate", pct: 0.5 },
-  { label: "Govern", pct: 0.75 },
-  { label: "Reuse", pct: 0.92 }
-];
-function PipelineArc() {
-  const canvasRef = useRef(null);
-  const wrapRef = useRef(null);
-  const rafRef = useRef(0);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const wrap = wrapRef.current;
-    if (!canvas || !wrap) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const resize = () => {
-      const w = wrap.clientWidth;
-      const baseH = Math.round(w * 0.32);
-      const h = baseH + 180;
-      canvas.width = w * devicePixelRatio;
-      canvas.height = h * devicePixelRatio;
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
-      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(wrap);
-    let startTs = 0;
-    const DRAW_DUR = 1800;
-    const DELAY = 400;
-    let currentDotProgress = 0;
-    const getBezierXY = (t, sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey) => {
-      const mt = 1 - t;
-      const x = mt * mt * mt * sx + 3 * mt * mt * t * cp1x + 3 * mt * t * t * cp2x + t * t * t * ex;
-      const y = mt * mt * mt * sy + 3 * mt * mt * t * cp1y + 3 * mt * t * t * cp2y + t * t * t * ey;
-      return { x, y };
-    };
-    const frame = (ts) => {
-      if (document.hidden) {
-        rafRef.current = requestAnimationFrame(frame);
-        return;
-      }
-      if (!startTs) startTs = ts;
-      const elapsed = ts - startTs - DELAY;
-      const raw = Math.min(1, Math.max(0, elapsed / DRAW_DUR));
-      const p = raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.pow(-2 * raw + 2, 3) / 2;
-      const W = canvas.width / devicePixelRatio;
-      const H = canvas.height / devicePixelRatio;
-      const cx = W / 2;
-      const cy = H - 188;
-      const scrollY = window.scrollY || 0;
-      const targetDotProgress = Math.min(1, Math.max(0, (scrollY - 50) / 400));
-      currentDotProgress += (targetDotProgress - currentDotProgress) * 0.08;
-      ctx.clearRect(0, 0, W, H);
-      ctx.beginPath();
-      ctx.moveTo(0, 1);
-      ctx.lineTo(W, 1);
-      ctx.strokeStyle = "rgba(126,205,233,0.1)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      PIPELINE_LABELS.forEach(({ pct }) => {
-        const finalX = pct * W;
-        const targetX = cx + (finalX - cx) * p;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.bezierCurveTo(cx, cy * 0.6, targetX, cy * 0.4, targetX, 0);
-        ctx.shadowColor = "#4aa8c0";
-        ctx.shadowBlur = 12;
-        ctx.strokeStyle = `rgba(74,168,192,${0.6 * p})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      });
-      if (p > 0.1) {
-        const arriveIntensity = Math.pow(currentDotProgress, 4);
-        const pulse = 0.5 + 0.5 * Math.sin(ts * 3e-3) + arriveIntensity * 0.5;
-        const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 24 + arriveIntensity * 12);
-        bg.addColorStop(0, `rgba(126,205,233,${0.3 * p + pulse * 0.15})`);
-        bg.addColorStop(1, "rgba(126,205,233,0)");
-        ctx.beginPath();
-        ctx.arc(cx, cy, 24 + arriveIntensity * 12, 0, Math.PI * 2);
-        ctx.fillStyle = bg;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx, cy, 4 + arriveIntensity * 2, 0, Math.PI * 2);
-        ctx.fillStyle = "#effcff";
-        ctx.shadowColor = "#7ecde9";
-        ctx.shadowBlur = 16 + arriveIntensity * 12;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        const lineGrad = ctx.createLinearGradient(cx, cy, cx, H);
-        lineGrad.addColorStop(0, `rgba(126,200,227,${0.8 * p})`);
-        lineGrad.addColorStop(1, "rgba(126,200,227,0)");
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx, cy + (H - cy) * p);
-        ctx.strokeStyle = lineGrad;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        if (currentDotProgress > 0.01) {
-          PIPELINE_LABELS.forEach(({ pct }) => {
-            const finalX = pct * W;
-            const targetX = cx + (finalX - cx) * p;
-            const { x, y } = getBezierXY(currentDotProgress, targetX, 0, targetX, cy * 0.4, cx, cy * 0.6, cx, cy);
-            const dotGlow = ctx.createRadialGradient(x, y, 0, x, y, 14);
-            dotGlow.addColorStop(0, `rgba(126, 200, 227, ${0.7 * p})`);
-            dotGlow.addColorStop(1, "rgba(126, 200, 227, 0)");
-            ctx.beginPath();
-            ctx.arc(x, y, 14, 0, Math.PI * 2);
-            ctx.fillStyle = dotGlow;
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-            ctx.fillStyle = "#ffffff";
-            ctx.shadowColor = "#7ec8e3";
-            ctx.shadowBlur = 8;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          });
-        }
-      }
-      rafRef.current = requestAnimationFrame(frame);
-    };
-    rafRef.current = requestAnimationFrame(frame);
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      ro.disconnect();
-    };
-  }, []);
-  return /* @__PURE__ */ React.createElement("div", { className: "hero-pipeline", "aria-label": "Platform stages", ref: wrapRef }, /* @__PURE__ */ React.createElement("canvas", { ref: canvasRef, className: "pipeline-canvas", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("div", { className: "pipeline-labels" }, PIPELINE_LABELS.map(({ label, pct }) => /* @__PURE__ */ React.createElement("span", { key: label, className: "pipeline-label", style: { left: `${pct * 100}%` } }, label))));
-}
+
 const EASE = [0.22, 1, 0.36, 1];
 const VIEWPORT_ONCE = { once: true, amount: 0.15, margin: "0px 0px -12% 0px" };
 const FACTORY_AGENTS = [
@@ -6066,6 +6030,17 @@ const FACTORY_AGENTS = [
     desc: "Pipelines, schemas, migrations, integrations. PHI and PII handling built in from the Blueprint."
   }
 ];
+function useTheme() {
+  const [theme, setTheme] = useState(() => document.documentElement.getAttribute("data-theme") || "dark");
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.getAttribute("data-theme") || "dark");
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+  return theme;
+}
 function ScrollRevealWord({
   word,
   index,
@@ -6073,6 +6048,7 @@ function ScrollRevealWord({
   breakAfterIndex,
   scrollYProgress
 }) {
+  const theme = useTheme();
   const start = index / wordCount;
   const end = start + 1 / wordCount;
   
@@ -6080,10 +6056,17 @@ function ScrollRevealWord({
   
   let targetColor, startColor, shadowColor, startShadowColor;
   if (isNavy) {
-    targetColor = "rgba(10, 22, 40, 1)";
-    startColor = "rgba(10, 22, 40, 0.15)";
-    shadowColor = "rgba(10, 22, 40, 0.1)";
-    startShadowColor = "rgba(10, 22, 40, 0)";
+    if (theme === "light") {
+      targetColor = "rgba(10, 22, 40, 1)";
+      startColor = "rgba(10, 22, 40, 0.15)";
+      shadowColor = "rgba(10, 22, 40, 0.1)";
+      startShadowColor = "rgba(10, 22, 40, 0)";
+    } else {
+      targetColor = "rgba(240, 249, 255, 1)";
+      startColor = "rgba(240, 249, 255, 0.15)";
+      shadowColor = "rgba(240, 249, 255, 0.15)";
+      startShadowColor = "rgba(240, 249, 255, 0)";
+    }
   } else {
     const secondLineIdx = index - breakAfterIndex - 1;
     const secondLineLen = wordCount - breakAfterIndex - 1;
@@ -6402,6 +6385,82 @@ function App() {
         if (scrollY2 > 50) nav.setAttribute("data-scrolled", "true");
         else nav.removeAttribute("data-scrolled");
       }
+      // Drive world parallax CSS vars
+      const worldEl = document.querySelector(".world");
+      if (worldEl) {
+        const wh2 = window.innerHeight;
+        const scrollY3 = window.scrollY;
+        
+        // Find positions of key sections
+        const problemSection = document.getElementById("problem");
+        const loopSection = document.getElementById("loop");
+        const decideSection = document.getElementById("decide");
+        const reuseSection = document.getElementById("reuse");
+        
+        const problemY = problemSection ? problemSection.offsetTop : wh2;
+        const loopY = loopSection ? loopSection.offsetTop : wh2 * 2;
+        const decideY = decideSection ? decideSection.offsetTop : wh2 * 3;
+        const reuseY = reuseSection ? reuseSection.offsetTop : wh2 * 7;
+        
+        let scale = 1.0;
+        let rot = 0;
+        let x = "0px";
+        let opacity = 0.78;
+        let activeNode = "";
+        
+        if (scrollY3 <= problemY) {
+          // Interpolate between hero and problem
+          const pct = Math.max(0, Math.min(1, scrollY3 / Math.max(1, problemY)));
+          scale = 1.0 - pct * 0.15; // 1.0 -> 0.85
+          rot = pct * 15; // 0 -> 15deg
+          x = "0px";
+          opacity = 0.78 - pct * 0.23; // 0.78 -> 0.55
+        } else if (scrollY3 <= loopY) {
+          // Interpolate between problem and loop
+          const pct = Math.max(0, Math.min(1, (scrollY3 - problemY) / Math.max(1, loopY - problemY)));
+          scale = 0.85 + pct * 0.6; // 0.85 -> 1.45 (scales up for loop)
+          rot = 15 + pct * 20; // 15 -> 35deg
+          x = "0px";
+          opacity = 0.55 + pct * 0.15; // 0.55 -> 0.7
+        } else if (scrollY3 <= decideY) {
+          // Interpolate between loop and decide
+          const pct = Math.max(0, Math.min(1, (scrollY3 - loopY) / Math.max(1, decideY - loopY)));
+          scale = 1.45 - pct * 0.8; // 1.45 -> 0.65
+          rot = 35 + pct * 55; // 35 -> 90deg
+          x = "0px";
+          opacity = 0.7 - pct * 0.1; // 0.7 -> 0.6
+          activeNode = pct > 0.5 ? "decide" : "";
+        } else {
+          // We are in the stages section.
+          // Let's interpolate rotation through the stages.
+          const totalStagesHeight = Math.max(1, reuseY - decideY);
+          const stagePct = Math.max(0, Math.min(1, (scrollY3 - decideY) / totalStagesHeight));
+          scale = 0.65;
+          rot = 90 + stagePct * 288; // rotate through all 5 stages (90 to 378deg)
+          x = "0px";
+          opacity = 0.6;
+          
+          // Determine active stage based on scroll
+          const stages = ["decide", "design", "accelerate", "govern", "reuse"];
+          const activeIdx = Math.min(stages.length - 1, Math.floor(stagePct * stages.length));
+          activeNode = stages[activeIdx];
+        }
+        
+        worldEl.style.setProperty("--ring-scale", String(scale));
+        worldEl.style.setProperty("--ring-rot", `${rot}deg`);
+        worldEl.style.setProperty("--core-scale", String(scale * 0.85));
+        worldEl.style.setProperty("--world-x", x);
+        worldEl.style.opacity = String(opacity);
+        
+        // Update lit node classes
+        document.querySelectorAll(".loop-node").forEach((node) => {
+          if (node.getAttribute("data-node") === activeNode) {
+            node.classList.add("lit");
+          } else {
+            node.classList.remove("lit");
+          }
+        });
+      }
     };
     const handleScroll = () => {
       if (!pending) {
@@ -6507,7 +6566,120 @@ function App() {
       }
     };
   }, [bpStarted]);
-  return /* @__PURE__ */ React.createElement("div", { className: "app-container", ref: appRef }, /* @__PURE__ */ React.createElement(AiEnergyFlowOverlay, { containerRef: appRef }), /* @__PURE__ */ React.createElement("header", { ref: navRef, className: "nav", "data-nav": "" }, /* @__PURE__ */ React.createElement("a", { href: "#", className: "nav-brand", "aria-label": "Home" }, /* @__PURE__ */ React.createElement("img", { src: "./senzai-logo.jpeg", alt: "Logo", className: "nav-mark", style: { height: "48px" } })), /* @__PURE__ */ React.createElement("nav", { className: "nav-links", "aria-label": "Primary" }, /* @__PURE__ */ React.createElement("a", { href: "#problem" }, "Why Senzai"), /* @__PURE__ */ React.createElement("a", { href: "#decide" }, "Decide"), /* @__PURE__ */ React.createElement("a", { href: "#design" }, "Design"), /* @__PURE__ */ React.createElement("a", { href: "#accelerate" }, "Accelerate"), /* @__PURE__ */ React.createElement("a", { href: "#govern" }, "Govern"), /* @__PURE__ */ React.createElement("a", { href: "#reuse" }, "Reuse")), /* @__PURE__ */ React.createElement("div", { className: "nav-actions" }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "app-container", ref: appRef },
+  /* PERSISTENT 3D WORLD — fixed behind content */
+  /* @__PURE__ */ React.createElement("div", { className: "world", "aria-hidden": "true" },
+    /* Deep starfield + grid floor */
+    React.createElement("div", { className: "world-bg" },
+      React.createElement("div", { className: "world-stars" }),
+      React.createElement("div", { className: "world-grid" }),
+      React.createElement("div", { className: "world-glow world-glow-a" }),
+      React.createElement("div", { className: "world-glow world-glow-b" }),
+      React.createElement("div", { className: "world-glow world-glow-c" })
+    ),
+    /* Dial Group Wrapper to handle off-center translations */
+    React.createElement("div", { className: "world-dial-group" },
+      /* The Govern Ring */
+      React.createElement("div", { className: "govern-ring" },
+        React.createElement("svg", { viewBox: "-220 -220 440 440", className: "govern-ring-svg" },
+          React.createElement("defs", null,
+            React.createElement("linearGradient", { id: "ringGrad", x1: "0", y1: "0", x2: "1", y2: "1" },
+              React.createElement("stop", { offset: "0%", stopColor: "#47B1BF" }),
+              React.createElement("stop", { offset: "50%", stopColor: "#2B75A9" }),
+              React.createElement("stop", { offset: "100%", stopColor: "#152670" })
+            ),
+            React.createElement("linearGradient", { id: "ringGrad2", x1: "1", y1: "0", x2: "0", y2: "1" },
+              React.createElement("stop", { offset: "0%", stopColor: "#5DC8D6", stopOpacity: "0" }),
+              React.createElement("stop", { offset: "50%", stopColor: "#5DC8D6", stopOpacity: ".8" }),
+              React.createElement("stop", { offset: "100%", stopColor: "#5DC8D6", stopOpacity: "0" })
+            )
+          ),
+          /* Outer ring */
+          React.createElement("circle", { r: 200, fill: "none", stroke: "url(#ringGrad)", strokeWidth: 1, opacity: .55 }),
+          /* Dashed inner tracks */
+          React.createElement("circle", { r: 170, fill: "none", stroke: "rgba(71,177,191,.18)", strokeWidth: 1, strokeDasharray: "2 6" }),
+          React.createElement("circle", { r: 140, fill: "none", stroke: "rgba(71,177,191,.12)", strokeWidth: 1 }),
+          React.createElement("circle", { r: 108, fill: "none", stroke: "rgba(71,177,191,.08)", strokeWidth: 1, strokeDasharray: "4 8" }),
+          /* Tick marks — 36 evenly spaced */
+          React.createElement("g", { stroke: "rgba(71,177,191,.55)", strokeWidth: 1 },
+            ...Array.from({ length: 36 }, (_, i) => {
+              const a = (i * 10) * Math.PI / 180;
+              const r0 = i % 3 === 0 ? 192 : 196;
+              return React.createElement("line", {
+                key: i,
+                x1: Math.cos(a) * r0, y1: Math.sin(a) * r0,
+                x2: Math.cos(a) * 200, y2: Math.sin(a) * 200
+              });
+            })
+          ),
+          /* Travelling dot on outer ring */
+          React.createElement("circle", { r: 3, fill: "rgba(93,200,214,.9)", stroke: "rgba(93,200,214,.5)", strokeWidth: 4,
+            style: { transformBox: "fill-box", transformOrigin: "center", animation: "ring-sweep 8s linear infinite",
+              offsetPath: "path('M 0,-200 A 200,200 0 1,1 -0.01,-200')",
+              offsetDistance: "0%" } }),
+          /* Cardinal labels */
+          React.createElement("g", { fontFamily: "'Space Grotesk', sans-serif", fontSize: 7, fontWeight: 700,
+            letterSpacing: "1.2", fill: "rgba(93,200,214,.85)" },
+            React.createElement("text", { x: 0, y: -210, textAnchor: "middle" }, "GOVERN"),
+            React.createElement("text", { x: 214, y: 3, textAnchor: "middle", transform: "rotate(90 214 3)" }, "AUDIT"),
+            React.createElement("text", { x: 0, y: 222, textAnchor: "middle" }, "POLICY"),
+            React.createElement("text", { x: -214, y: 3, textAnchor: "middle", transform: "rotate(-90 -214 3)" }, "APPROVE")
+          ),
+          /* Sweeping pulse arc */
+          React.createElement("circle", { r: 200, fill: "none", stroke: "url(#ringGrad2)",
+            strokeWidth: 2, strokeDasharray: "60 1200", className: "ring-sweep" })
+        )
+      ),
+      /* Loop orbit — 5 stage nodes */
+      React.createElement("div", { className: "loop-orbit" },
+        React.createElement("div", { className: "loop-node", style: { "--angle": "-90deg" }, "data-node": "decide" },
+          React.createElement("div", { className: "loop-node-dot" }),
+          React.createElement("div", { className: "loop-node-ping" }),
+          React.createElement("div", { className: "loop-node-label" }, "01 · Decide")
+        ),
+        React.createElement("div", { className: "loop-node", style: { "--angle": "-18deg" }, "data-node": "design" },
+          React.createElement("div", { className: "loop-node-dot" }),
+          React.createElement("div", { className: "loop-node-ping" }),
+          React.createElement("div", { className: "loop-node-label" }, "02 · Design")
+        ),
+        React.createElement("div", { className: "loop-node", style: { "--angle": "54deg" }, "data-node": "accelerate" },
+          React.createElement("div", { className: "loop-node-dot" }),
+          React.createElement("div", { className: "loop-node-ping" }),
+          React.createElement("div", { className: "loop-node-label" }, "03 · Accelerate")
+        ),
+        React.createElement("div", { className: "loop-node", style: { "--angle": "126deg" }, "data-node": "govern" },
+          React.createElement("div", { className: "loop-node-dot" }),
+          React.createElement("div", { className: "loop-node-ping" }),
+          React.createElement("div", { className: "loop-node-label" }, "04 · Govern")
+        ),
+        React.createElement("div", { className: "loop-node", style: { "--angle": "198deg" }, "data-node": "reuse" },
+          React.createElement("div", { className: "loop-node-dot" }),
+          React.createElement("div", { className: "loop-node-ping" }),
+          React.createElement("div", { className: "loop-node-label" }, "05 · Reuse")
+        )
+      ),
+      /* Senzai mark at the core */
+      React.createElement("div", { className: "world-core" },
+        React.createElement("img", { src: "./senzai-logo.jpeg", alt: "" })
+      )
+    ),
+    /* Floating depth chips — ambient enterprise data */
+    React.createElement("div", { className: "depth-layer depth-far" },
+      React.createElement("span", { className: "depth-chip" }, "Stage gate \u00B7 Blueprint #14"),
+      React.createElement("span", { className: "depth-chip" }, "CVE scan complete"),
+      React.createElement("span", { className: "depth-chip" }, "SenzScore 82"),
+      React.createElement("span", { className: "depth-chip" }, "PHI masking \u00B7 enforced"),
+      React.createElement("span", { className: "depth-chip" }, "Owner assigned"),
+      React.createElement("span", { className: "depth-chip" }, "Audit trace linked")
+    ),
+    React.createElement("div", { className: "depth-layer depth-mid" },
+      React.createElement("span", { className: "depth-chip lit" }, "Reuse match found"),
+      React.createElement("span", { className: "depth-chip" }, "HIPAA \u00B7 HITRUST"),
+      React.createElement("span", { className: "depth-chip" }, "Sprint 2 of 3"),
+      React.createElement("span", { className: "depth-chip" }, "142 tests passing")
+    )
+  ),
+  /* @__PURE__ */ React.createElement(AiEnergyFlowOverlay, { containerRef: appRef }), /* @__PURE__ */ React.createElement("header", { ref: navRef, className: "nav", "data-nav": "" }, /* @__PURE__ */ React.createElement("a", { href: "#", className: "nav-brand", "aria-label": "Home" }, /* @__PURE__ */ React.createElement("img", { src: "./senzai-logo.jpeg", alt: "Logo", className: "nav-mark", style: { height: "48px" } })), /* @__PURE__ */ React.createElement("nav", { className: "nav-links", "aria-label": "Primary" }, /* @__PURE__ */ React.createElement("a", { href: "#problem" }, "Why Senzai"), /* @__PURE__ */ React.createElement("a", { href: "#decide" }, "Decide"), /* @__PURE__ */ React.createElement("a", { href: "#design" }, "Design"), /* @__PURE__ */ React.createElement("a", { href: "#accelerate" }, "Accelerate"), /* @__PURE__ */ React.createElement("a", { href: "#govern" }, "Govern"), /* @__PURE__ */ React.createElement("a", { href: "#reuse" }, "Reuse")), /* @__PURE__ */ React.createElement("div", { className: "nav-actions" }, /* @__PURE__ */ React.createElement(
     motion.a,
     {
       className: "nav-cta",
@@ -6528,7 +6700,7 @@ function App() {
       variants: sectionVariants
     },
     /* @__PURE__ */ React.createElement("div", { className: "stage-inner hero-inner" }, /* @__PURE__ */ React.createElement(motion.div, { className: "hero-parallax-bg", style: { y: reduce ? 0 : heroParallaxY }, "aria-hidden": true }, /* @__PURE__ */ React.createElement("div", { className: "hero-parallax-blob hero-parallax-blob--a" }), /* @__PURE__ */ React.createElement("div", { className: "hero-parallax-blob hero-parallax-blob--b" })), /* @__PURE__ */ React.createElement("div", { className: "hero-title-aurora", "aria-hidden": true }), /* @__PURE__ */ React.createElement(motion.div, { variants: staggerContainer, initial: "hidden", animate: "visible" }, /* @__PURE__ */ React.createElement(motion.div, { className: "hero-eyebrow", variants: staggerItem }, /* @__PURE__ */ React.createElement("span", { className: "dot" }), "Infinite's Enterprise AI Delivery Operating System"), /* @__PURE__ */ React.createElement(motion.h1, { className: "hero-title", variants: heroWord }, "Built to Deliver."), /* @__PURE__ */ React.createElement(motion.p, { className: "hero-sub", variants: heroSubVariants }, "From raw idea to governed AI outcome \u2014 one continuous loop. Scored. Blueprinted. Built. Governed. Every output a reusable asset.")))
-  ), /* @__PURE__ */ React.createElement(PipelineArc, null), /* @__PURE__ */ React.createElement(
+  ), /* @__PURE__ */ React.createElement(
     motion.section,
     {
       className: "stage stage-problem",
@@ -6555,58 +6727,30 @@ function App() {
     /* @__PURE__ */ React.createElement(
       motion.div,
       {
-        className: "stage-inner loop-hero-inner",
+        className: "stage-inner loop-hero-inner centered-layout",
         variants: staggerContainer,
         initial: "hidden",
         whileInView: "visible",
         viewport: VIEWPORT_ONCE
       },
       /* @__PURE__ */ React.createElement(motion.div, { className: "loop-hero-pill-wrap", variants: staggerItem }, /* @__PURE__ */ React.createElement("div", { className: "loop-hero-pill" }, "The SENZAI Loop")),
-      /* @__PURE__ */ React.createElement(motion.div, { className: "loop-hero-split", variants: staggerContainer }, /* @__PURE__ */ React.createElement(motion.div, { className: "loop-hero-left", variants: staggerItem }, /* @__PURE__ */ React.createElement(
+      /* @__PURE__ */ React.createElement(
         motion.h2,
         {
-          className: "loop-hero-title loop-hero-title-animated",
-          "aria-label": "One continuous operating loop from demand to delivery.",
-          variants: {
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.6 } }
-          }
+          className: "loop-hero-title-centered",
+          variants: staggerItem
         },
-        /* @__PURE__ */ React.createElement(
-          motion.div,
-          {
-            className: "anim-part1",
-            variants: {
-              hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { duration: 0.8, ease: "easeOut" } }
-            }
-          },
-          /* @__PURE__ */ React.createElement("span", { className: "loop-hero-title-line" }, "One continuous"),
-          /* @__PURE__ */ React.createElement("span", { className: "loop-hero-title-line" }, "operating loop")
-        ),
-        /* @__PURE__ */ React.createElement(
-          motion.div,
-          {
-            className: "anim-part2",
-            variants: {
-              hidden: { opacity: 0, maxWidth: 0 },
-              visible: { opacity: 1, maxWidth: 800, transition: { duration: 1.2, ease: "easeOut" } }
-            }
-          },
-          /* @__PURE__ */ React.createElement(
-            motion.span,
-            {
-              style: { display: "block" },
-              variants: {
-                hidden: { x: -800 },
-                visible: { x: 0, transition: { duration: 1.2, ease: "easeOut" } }
-              }
-            },
-            /* @__PURE__ */ React.createElement("span", { className: "loop-hero-title-line" }, "from demand"),
-            /* @__PURE__ */ React.createElement("span", { className: "loop-hero-title-line" }, "to delivery.")
-          )
-        )
-      )), /* @__PURE__ */ React.createElement(motion.div, { className: "loop-hero-divider", "aria-hidden": "true", variants: staggerItem }, /* @__PURE__ */ React.createElement("span", { className: "loop-hero-divider-line" })), /* @__PURE__ */ React.createElement(motion.div, { className: "loop-hero-right", variants: staggerItem }, /* @__PURE__ */ React.createElement("p", { className: "loop-hero-mono" }, "SENZAI centralizes intake, portfolio governance, blueprinting, factory execution, and reusable AI assets in one controlled system. Five stages. One ring of governance around all of them.")))
+        "One continuous operating loop from demand to delivery."
+      ),
+      /* @__PURE__ */ React.createElement(
+        motion.div,
+        {
+          className: "loop-hero-desc-centered",
+          variants: staggerItem
+        },
+        /* @__PURE__ */ React.createElement("p", null, "SENZAI helps organizations decide what to build, design it right, and govern it safely \u2014 turning ideas into build-ready solutions."),
+        /* @__PURE__ */ React.createElement("p", null, "Five stages. One continuous loop. One ring of governance around all of them.")
+      )
     )
   ), /* @__PURE__ */ React.createElement("div", { className: "platform-stages-shell", id: "platform" }, /* @__PURE__ */ React.createElement(PlatformRail, { scrollToSection: (id, b) => scrollToSectionId(id, b ?? "smooth") }), /* @__PURE__ */ React.createElement("div", { className: "platform-stages-main" }, /* @__PURE__ */ React.createElement(
     motion.section,
