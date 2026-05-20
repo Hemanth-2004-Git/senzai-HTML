@@ -396,11 +396,7 @@ a {
   filter: invert(1) hue-rotate(180deg) brightness(1.1);
   mix-blend-mode: screen;
 }
-html[data-theme="light"] .world-core img {
-  filter: none;
-  mix-blend-mode: multiply;
-  opacity: .12;
-}
+/* world-core img light override consolidated in light-theme section below */
 
 /* Depth layers — floating ambient chips */
 .depth-layer {
@@ -556,10 +552,7 @@ html[data-theme="light"] .world-core img {
   animation: node-ping 2.4s ease-out infinite;
 }
 
-/* World hidden in light mode */
-html[data-theme="light"] .world {
-  opacity: .08;
-}
+/* Light mode world appearance handled in the light-theme overrides section below */
 
 /* ============================================================
    NAV
@@ -1091,9 +1084,7 @@ html[data-theme="light"] .foot-mark {
   padding-top: clamp(80px, 12vw, 160px);
 }
 
-.section-head {
-  margin-bottom: 32px;
-}
+/* .section-head margin consolidated below */
 
 /*
   min-height: 100vh;
@@ -4312,11 +4303,7 @@ html[data-theme="light"] {
   background-attachment: fixed;
 }
 
-/* ── Hide heavy 3-D world layer entirely ── */
-html[data-theme="light"] .world {
-  opacity: 0;
-  pointer-events: none;
-}
+/* Light mode world appearance handled in light-theme overrides section at end of styles */
 
 html[data-theme="light"] body::after {
   opacity: 0;
@@ -5046,9 +5033,7 @@ html[data-theme="light"] #reuse {
 }
 
 /* ── AI energy flow spine — lighter on white bg ── */
-html[data-theme="light"] .ai-energy-flow {
-  opacity: 0.25;
-}
+/* ai-energy-flow opacity consolidated in light-theme overrides section below */
 
 /* ── Section spacing ── */
 html[data-theme="light"] .stage:not(.stage-hero):not(.stage-loop) {
